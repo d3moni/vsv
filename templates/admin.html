@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>관리자 페이지</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>관리자 페이지</h1>
+    <p><a href="{{ url_for('index') }}">홈으로</a></p>
+
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>ID</th>
+            <th>사용자명</th>
+            <th>활성화</th>
+            <th>관리자</th>
+            <th>동작</th>
+        </tr>
+        {% for u in users %}
+        <tr>
+            <td>{{ u.id }}</td>
+            <td>{{ u.username }}</td>
+            <td>{{ '예' if u.is_active else '아니오' }}</td>
+            <td>{{ '예' if u.is_admin else '아니오' }}</td>
+            <td>
+                {% if not u.is_admin %}
+                    {% if not u.is_active %}
+                        <form method="post" style="display:inline;">
+                            <input type="hidden" name="user_id" value="{{ u.id }}">
+                            <button type="submit" name="action" value="approve">승인</button>
+                        </form>
+                    {% endif %}
+                    <form method="post" style="display:inline;">
+                        <input type="hidden" name="user_id" value="{{ u.id }}">
+                        <button type="submit" name="action" value="delete">삭제</button>
+                    </form>
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

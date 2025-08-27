@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}규칙{% endblock %}
+{% block content %}
+<h2>테라 국가 법전</h2>
+<div class="rules-tabs">
+    <button class="tab-btn active" data-tab="general">기본</button>
+    <button class="tab-btn" data-tab="post">야생시</button>
+    <button class="tab-btn" data-tab="chat">채팅 규칙</button>
+</div>
+<div class="tab-content" id="general" style="display:block;">
+    <ul>
+        <li>1. 서로를 존중하며 예의를 지킵니다.</li>
+        <li>2. 불법적이거나 부적절한 내용을 게시하지 않습니다.</li>
+        <li>3. 개인정보를 타인과 공유하지 않습니다.</li>
+        <li>4. 관리자 지시에 협조합니다.</li>
+        <li>5. 기타 운영 정책을 준수합니다.</li>
+    </ul>
+</div>
+<div class="tab-content" id="post" style="display:none;">
+    <ul>
+        <li>1. 저작권을 침해하는 게시글을 작성하지 않습니다.</li>
+        <li>2. 광고, 도배, 스팸성 게시글을 금지합니다.</li>
+        <li>3. 타인을 비방하거나 명예를 훼손하는 게시글을 금지합니다.</li>
+        <li>4. 게시글은 주제에 맞게 작성합니다.</li>
+    </ul>
+</div>
+<div class="tab-content" id="chat" style="display:none;">
+    <ul>
+        <li>1. 욕설, 비방, 혐오 표현을 사용하지 않습니다.</li>
+        <li>2. 도배성 메시지를 금지합니다.</li>
+        <li>3. 사적인 정보 공유를 금지합니다.</li>
+        <li>4. 채팅방의 질서를 유지합니다.</li>
+    </ul>
+</div>
+<script>
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+        document.getElementById(this.dataset.tab).style.display = 'block';
+    });
+});
+</script>
+<style>
+.rules-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    justify-content: center;
+}
+.tab-btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 8px 8px 0 0;
+    background: #222;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+    outline: none;
+}
+.tab-btn.active, .tab-btn:hover {
+    background: #1abc9c;
+    color: #fff;
+}
+.tab-content {
+    background: #222;
+    border-radius: 0 0 12px 12px;
+    padding: 20px 30px;
+    margin-bottom: 20px;
+}
+</style>
+{% endblock %}

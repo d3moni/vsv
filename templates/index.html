@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}홈{% endblock %}
+{% block content %}
+
+{% if user %}
+    <h2>{{ user.username }}님 환영합니다!</h2>
+{% else %}
+    <h2>로그인이 필요합니다</h2>
+{% endif %}
+
+{% endblock %}

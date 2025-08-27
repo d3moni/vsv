@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <!-- 보안: Content Security Policy 추가 -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline';">
+    <title>{% block title %}Terra Nation{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Montserrat:wght@700;900&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <style>
+    /* ...existing code... */
+    .gradient-bg {
+        /* ...existing code... */
+        transition: opacity 0.5s;
+    }
+    body.fade-out .gradient-bg {
+        opacity: 0;
+    }
+    .gradient-bg .interactive {
+        position: absolute;
+        background: radial-gradient(circle at center, rgba(var(--color-interactive), 0.8) 0, rgba(var(--color-interactive), 0) 50%) no-repeat;
+        mix-blend-mode: var(--blending);
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        opacity: 0.7;
+        /* 중앙 기준 이동을 위해 추가 */
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+    }
+    /* ...existing code... */
+    </style>
+</head>
+<body>
+    <!-- 몽환적 그라데이션 배경 -->
+    <div class="gradient-bg">
+      <svg>
+        <filter id="goo">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+          <feColorMatrix in="blur" mode="matrix"
+            values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7"
+            result="goo" />
+          <feBlend in="SourceGraphic" in2="goo" />
+        </filter>
+      </svg>
+      <div class="gradients-container">
+        <div class="g1"></div>
+        <div class="g2"></div>
+        <div class="g3"></div>
+        <div class="g4"></div>
+        <div class="g5"></div>
+        <div class="interactive"></div>
+      </div>
+    </div>
+
+    <header>
+        <h1 class="brand-title">Terra Nation</h1>
+    </header>
+
+    <nav>
+        <a href="/">홈</a>
+        {% if user %}
+            <a href="/rules">규칙</a>
+            <a href="/logout">로그아웃</a>
+        {% else %}
+            <a href="/login">로그인</a>
+            <a href="/register">가입</a>
+        {% endif %}
+    </nav>
+
+    <div class="container">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for msg in messages %}
+                    <div class="message-box">
+                        <span class="close-btn">✕</span>
+                        {{ msg }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <script>
+    // 브랜드 타이틀 등장
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) entry.target.classList.add("show");
+        });
+    });
+    document.querySelectorAll(".brand-title").forEach(el => observer.observe(el));
+
+    // 메시지박스 닫기
+    document.addEventListener("click", function(e) {
+        if (e.target.classList.contains("close-btn")) {
+            const box = e.target.parentElement;
+            box.classList.add("fade-out-up");
+            setTimeout(() => box.remove(), 500);
+        }
+    });
+
+    // 마우스 따라가는 인터랙티브 버블
+    document.addEventListener('DOMContentLoaded', () => {
+        const interBubble = document.querySelector('.interactive');
+        if (!interBubble) return;
+        let curX = 0, curY = 0, tgX = 0, tgY = 0;
+        function move() {
+            curX += (tgX - curX) / 20;
+            curY += (tgY - curY) / 20;
+            interBubble.style.transform = `translate(${Math.round(curX)}px, ${Math.round(curY)}px) translate(-50%, -50%)`;
+            requestAnimationFrame(move);
+        }
+        window.addEventListener('mousemove', (event) => {
+            tgX = event.clientX;
+            tgY = event.clientY;
+        });
+        move();
+    });
+
+    // 페이지 이동 시 페이드아웃 효과 (선택)
+    document.querySelectorAll('nav a').forEach(link => {
+        link.addEventListener('click', function(e) {
+            // 새 창/외부 링크/다운로드 등은 무시
+            if (this.target === '_blank' || this.href.startsWith('http')) return;
+            document.body.classList.add('fade-out');
+        });
+    });
+
+    // 랜덤 그라데이션 배경 생성
+    function randomColor() {
+        return `${Math.floor(Math.random()*256)}, ${Math.floor(Math.random()*256)}, ${Math.floor(Math.random()*256)}`;
+    }
+    function randomCircleSize() {
+        return `${60 + Math.random()*40}%`; // 60~100%
+    }
+    function randomPos(base, range) {
+        return `calc(50% ${base >= 0 ? '+' : '-'} ${Math.abs(base) + Math.floor(Math.random()*range)}px)`;
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+        // 랜덤 컬러 변수 적용
+        document.documentElement.style.setProperty('--color1', randomColor());
+        document.documentElement.style.setProperty('--color2', randomColor());
+        document.documentElement.style.setProperty('--color3', randomColor());
+        document.documentElement.style.setProperty('--color4', randomColor());
+        document.documentElement.style.setProperty('--color5', randomColor());
+        document.documentElement.style.setProperty('--circle-size', randomCircleSize());
+
+        // 각 gradient 위치 랜덤화
+        const g2 = document.querySelector('.g2');
+        const g3 = document.querySelector('.g3');
+        const g4 = document.querySelector('.g4');
+        const g5 = document.querySelector('.g5');
+        if (g2) g2.style.transformOrigin = randomPos(-400, 400);
+        if (g3) g3.style.transformOrigin = randomPos(400, 400);
+        if (g4) g4.style.transformOrigin = randomPos(-200, 400);
+        if (g5) g5.style.transformOrigin = randomPos(-800, 800) + ' ' + randomPos(200, 400);
+    });
+    </script>
+</body>
+</html>
