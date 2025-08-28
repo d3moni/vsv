@@ -8,3 +8,4 @@ class User(db.Model):
     password = db.Column(db.String(200), nullable=False)
     is_active = db.Column(db.Boolean, default=False)  # 승인 여부
     is_admin = db.Column(db.Boolean, default=False)   # 관리자 여부
+    is_superadmin = db.Column(db.Boolean, default=False)  # 최초 관리자 구분용

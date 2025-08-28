@@ -4,6 +4,63 @@
     <meta charset="UTF-8">
     <title>관리자 페이지</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+    body {
+        background: #181818;
+        color: #fff;
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    h1, a, th, td {
+        color: #fff;
+    }
+    table {
+        background: #222;
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 0 auto;
+        width: 90%;
+        box-shadow: 0 2px 16px #0008;
+    }
+    th, td {
+        padding: 12px 16px;
+        border: 1px solid #333;
+        text-align: center;
+    }
+    th {
+        background: #1abc9c;
+        color: #fff;
+        font-weight: bold;
+    }
+    tr:nth-child(even) {
+        background: #23272f;
+    }
+    tr:nth-child(odd) {
+        background: #181c22;
+    }
+    a {
+        color: #1abc9c;
+        text-decoration: none;
+        font-weight: bold;
+    }
+    a:hover {
+        text-decoration: underline;
+    }
+    button {
+        background: #1abc9c;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 6px 14px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    button:hover {
+        background: #16a085;
+    }
+    </style>
 </head>
 <body>
     <h1>관리자 페이지</h1>
@@ -24,7 +81,9 @@
             <td>{{ '예' if u.is_active else '아니오' }}</td>
             <td>{{ '예' if u.is_admin else '아니오' }}</td>
             <td>
-                {% if not u.is_admin %}
+                {% if u.is_superadmin %}
+                    <span style="color:#1abc9c;font-weight:bold;">최고관리자</span>
+                {% elif not u.is_admin %}
                     {% if not u.is_active %}
                         <form method="post" style="display:inline;">
                             <input type="hidden" name="user_id" value="{{ u.id }}">
@@ -35,8 +94,18 @@
                         <input type="hidden" name="user_id" value="{{ u.id }}">
                         <button type="submit" name="action" value="delete">삭제</button>
                     </form>
+                    {% if u.is_active %}
+                    <form method="post" style="display:inline;">
+                        <input type="hidden" name="user_id" value="{{ u.id }}">
+                        <button type="submit" name="action" value="make_admin">관리자권한부여</button>
+                    </form>
+                    {% endif %}
                 {% else %}
-                    -
+                    <!-- 일반 어드민은 삭제 가능 -->
+                    <form method="post" style="display:inline;">
+                        <input type="hidden" name="user_id" value="{{ u.id }}">
+                        <button type="submit" name="action" value="delete">삭제</button>
+                    </form>
                 {% endif %}
             </td>
         </tr>

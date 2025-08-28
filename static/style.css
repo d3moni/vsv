@@ -11,7 +11,6 @@
     --blending: hard-light;
 }
 
-/* gradient background animation */
 @keyframes moveInCircle {
     0% { transform: rotate(0deg);}
     50% { transform: rotate(180deg);}
@@ -144,9 +143,6 @@ html, body {
   text-shadow: 1px 1px rgba(0,0,0,0.1);
 }
 
-/* ===========================
-   기본 폰트/색상/마진
-=========================== */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
@@ -159,9 +155,6 @@ body {
     z-index: 1;
 }
 
-/* ===========================
-   헤더 / 브랜드 타이틀
-=========================== */
 header {
     text-align: center;
     padding: 50px 0 20px 0;
@@ -193,9 +186,7 @@ header {
     border-radius: 16px;
     padding: 0.25em 0.7em;
     filter: drop-shadow(0 2px 16px #00fff0aa);
-    /* 미래 느낌 강조 */
     letter-spacing: 0.22em;
-    /* 약간의 반사효과 */
     position: relative;
     overflow: visible;
 }
@@ -225,9 +216,6 @@ header {
     50% { transform: translateY(-5px); }
 }
 
-/* ===========================
-   내비게이션
-=========================== */
 nav {
     background-color: rgba(44, 62, 80, 0.9);
     padding: 15px;
@@ -251,9 +239,6 @@ nav a:hover {
     transform: scale(1.05);
 }
 
-/* ===========================
-   컨테이너
-=========================== */
 .container {
     width: 100%;
     max-width: 600px;
@@ -266,9 +251,6 @@ nav a:hover {
     z-index: 2;
 }
 
-/* ===========================
-   메시지 박스
-=========================== */
 .message-box {
     background: #333;
     border: 1px solid #666;
@@ -308,9 +290,6 @@ nav a:hover {
     100% { opacity: 0; transform: translateY(-60px) scale(0.95); }
 }
 
-/* ===========================
-   폼
-=========================== */
 form {
     display: flex;
     flex-direction: column;
@@ -346,9 +325,6 @@ button {
 
 button:hover { background-color: #16a085; }
 
-/* ===========================
-   제목 h2 애니메이션
-=========================== */
 h2 {
     text-align: center;
     margin-bottom: 20px;

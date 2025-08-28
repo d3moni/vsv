@@ -2,7 +2,6 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <!-- 보안: Content Security Policy 추가 -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline';">
     <title>{% block title %}Terra Nation{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
@@ -10,9 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Montserrat:wght@700;900&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <style>
-    /* ...existing code... */
     .gradient-bg {
-        /* ...existing code... */
         transition: opacity 0.5s;
     }
     body.fade-out .gradient-bg {
@@ -27,15 +24,12 @@
         top: 0;
         left: 0;
         opacity: 0.7;
-        /* 중앙 기준 이동을 위해 추가 */
         transform: translate(-50%, -50%);
         pointer-events: none;
     }
-    /* ...existing code... */
     </style>
 </head>
 <body>
-    <!-- 몽환적 그라데이션 배경 -->
     <div class="gradient-bg">
       <svg>
         <filter id="goo">
@@ -87,7 +81,6 @@
     </div>
 
     <script>
-    // 브랜드 타이틀 등장
     const observer = new IntersectionObserver(entries => {
         entries.forEach(entry => {
             if (entry.isIntersecting) entry.target.classList.add("show");
@@ -95,7 +88,6 @@
     });
     document.querySelectorAll(".brand-title").forEach(el => observer.observe(el));
 
-    // 메시지박스 닫기
     document.addEventListener("click", function(e) {
         if (e.target.classList.contains("close-btn")) {
             const box = e.target.parentElement;
@@ -104,7 +96,6 @@
         }
     });
 
-    // 마우스 따라가는 인터랙티브 버블
     document.addEventListener('DOMContentLoaded', () => {
         const interBubble = document.querySelector('.interactive');
         if (!interBubble) return;
@@ -122,27 +113,23 @@
         move();
     });
 
-    // 페이지 이동 시 페이드아웃 효과 (선택)
     document.querySelectorAll('nav a').forEach(link => {
         link.addEventListener('click', function(e) {
-            // 새 창/외부 링크/다운로드 등은 무시
             if (this.target === '_blank' || this.href.startsWith('http')) return;
             document.body.classList.add('fade-out');
         });
     });
 
-    // 랜덤 그라데이션 배경 생성
     function randomColor() {
         return `${Math.floor(Math.random()*256)}, ${Math.floor(Math.random()*256)}, ${Math.floor(Math.random()*256)}`;
     }
     function randomCircleSize() {
-        return `${60 + Math.random()*40}%`; // 60~100%
+        return `${60 + Math.random()*40}%`;
     }
     function randomPos(base, range) {
         return `calc(50% ${base >= 0 ? '+' : '-'} ${Math.abs(base) + Math.floor(Math.random()*range)}px)`;
     }
     document.addEventListener('DOMContentLoaded', () => {
-        // 랜덤 컬러 변수 적용
         document.documentElement.style.setProperty('--color1', randomColor());
         document.documentElement.style.setProperty('--color2', randomColor());
         document.documentElement.style.setProperty('--color3', randomColor());
@@ -150,7 +137,6 @@
         document.documentElement.style.setProperty('--color5', randomColor());
         document.documentElement.style.setProperty('--circle-size', randomCircleSize());
 
-        // 각 gradient 위치 랜덤화
         const g2 = document.querySelector('.g2');
         const g3 = document.querySelector('.g3');
         const g4 = document.querySelector('.g4');
