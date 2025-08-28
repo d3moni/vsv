@@ -573,3 +573,47 @@ button:hover {
     position: relative;
     padding-bottom: 30px; /* 버튼 위치 조정용 */
 }
+
+/* ===============================
+   🔹 로그인 / 회원가입 버튼 전용 (글씨 가운데, 크기 조정)
+=============================== */
+
+.btn-login,
+.btn-signup {
+    padding: 12px 24px;             /* 버튼 크기 조금 키움 */
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 16px;                /* 글씨 크기 키움 */
+    text-align: center;             /* 글씨 가운데 정렬 */
+    vertical-align: middle;         /* 세로 가운데 정렬 */
+    display: inline-flex;           /* 글씨 가운데 정렬 보장 */
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+/* 로그인 버튼 색상 */
+.btn-login {
+    background-color: #1abc9c;
+    color: white;
+}
+
+/* 로그인 버튼 호버 */
+.btn-login:hover {
+    background-color: #16a085;
+    transform: none;               /* 호버시 커지지 않음 */
+}
+
+/* 회원가입 버튼 색상 */
+.btn-signup {
+    background-color: #3498db;
+    color: white;
+}
+
+/* 회원가입 버튼 호버 */
+.btn-signup:hover {
+    background-color: #2980b9;
+    transform: none;
+}
