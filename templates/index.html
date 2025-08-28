@@ -4,6 +4,37 @@
 
 {% if user %}
     <h2>{{ user.username }}님 환영합니다!</h2>
+
+    <!-- ✅ 로그인한 경우에만 보이는 추천 영역 -->
+    <div class="recommend-section">
+        <h3>추천 페이지</h3>
+        <div class="recommend-grid">
+            <a href="/rules" class="recommend-card">
+                <div class="card-content">
+                    <h4>규칙</h4>
+                    <p>커뮤니티 규칙을 확인하세요</p>
+                </div>
+            </a>
+            <a href="/profile" class="recommend-card">
+                <div class="card-content">
+                    <h4>내 프로필</h4>
+                    <p>회원 정보를 관리하세요</p>
+                </div>
+            </a>
+            <a href="/info" class="recommend-card">
+                <div class="card-content">
+                    <h4>정보</h4>
+                    <p>서버 소식을 알아보세요</p>
+                </div>
+            </a>
+            <a href="/suggestions" class="recommend-card">
+                <div class="card-content">
+                    <h4>건의사항</h4>
+                    <p>국가 발전에 기여하세요</p>
+                </div>
+            </a>
+        </div>
+    </div>
 {% else %}
     <h2>로그인이 필요합니다</h2>
 {% endif %}

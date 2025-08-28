@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}건의사항{% endblock %}
+{% block content %}
+<div class="suggestions-header">
+    <h2>건의사항 목록</h2>
+    <a href="{{ url_for('submit_suggestion') }}" class="btn-add-suggestion">건의사항 등록</a>
+</div>
+
+<div class="suggestions-container">
+    {% for sug in suggestions %}
+    <a href="{{ url_for('suggestion_detail', sug_id=sug.id) }}" class="suggestion-card">
+        <div class="card-content">
+            <h3>{{ sug.title }}</h3>
+            <p>{{ sug.content[:150] }}{% if sug.content|length > 150 %}...{% endif %}</p>
+            <span>{{ sug.author.username if sug.author else '익명' }}</span>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% endblock %}

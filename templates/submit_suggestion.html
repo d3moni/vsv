@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}건의사항 등록{% endblock %}
+{% block content %}
+<div class="submit-suggestion-container">
+    <form method="POST">
+        <div class="form-group">
+            <label>제목</label>
+            <input type="text" name="title" required>
+        </div>
+        <div class="form-group">
+            <label>내용</label>
+            <textarea name="content" required></textarea>
+        </div>
+        <div class="form-check">
+            <input type="checkbox" id="is_public" name="is_public">
+            <label for="is_public">모두에게 공개</label>
+        </div>
+        <div class="form-check">
+            <input type="checkbox" id="is_anonymous" name="is_anonymous">
+            <label for="is_anonymous">익명</label>
+        </div>
+        <button type="submit">제출</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}건의사항 상세{% endblock %}
+{% block content %}
+<div class="suggestion-detail-card">
+    <h2>{{ suggestion.title }}</h2>
+    <p>{{ suggestion.content }}</p>
+    <span>작성자: {{ suggestion.author.username if suggestion.author else '익명' }}</span>
+</div>
+
+<div class="comments-section">
+    {% for comment in suggestion.comments %}
+    <div class="comment-card">
+        <strong>{{ comment.author.username if comment.author else '익명' }}</strong>
+        <p>{{ comment.content }}</p>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="add-comment-section">
+    <form method="POST">
+        <textarea name="comment" placeholder="댓글을 작성하세요..." required></textarea>
+        <button type="submit">댓글 등록</button>
+    </form>
+</div>
+{% endblock %}

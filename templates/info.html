@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}규칙{% endblock %}
+{% block content %}
+<h2>서버정보</h2>
+<div class="rules-tabs">
+    <button class="tab-btn active" data-tab="general">풀마녀</button>
+    <button class="tab-btn" data-tab="post">야생시</button>
+    <button class="tab-btn" data-tab="chat">해양 탐사</button>
+</div>
+<div class="tab-content" id="general" style="display:block;">
+    <ul>
+        <li>사냥용 모자 : 사냥꾼5, 식량저장5, 방폭복3</li>
+        <li>전투용 모자: 견문V  역병V(or독발림)  탈진 III</li>
+        <li>바지 : 방화복3(화염보호가 있을시 굴절 5), 강인함5, 오버로드4</li>
+        <li>신발 : 방검복5, 방석복5, 헤르메스1</li>
+        <li>노밀검: 경량화IV  연막III  최후의일격V (최일검)</li>
+        <li>밀1검: 경량화IV  연막III  흡혈귀V (딜검)</li>
+        <li>밀2검: 연막III  바이퍼III  척력 V (도망용 검)</li>
+        <li>활 : 스위치V, 헤드샷V, 올가미IV</li>
+    </ul>
+</div>
+<div class="tab-content" id="post" style="display:none;">
+    <ul>
+        <li>1. 야생에서 절대 모르는 유저 tp 받지 않기</li>
+        <li>2. 유탐 자주 찍기</li>
+        <li>3. </li>
+        <li>4.</li>
+    </ul>
+</div>
+<div class="tab-content" id="chat" style="display:none;">
+    <ul>
+        <li>1. 여유가 된다면 초반은 해양패키지를 구매하거나 크레딧으로 올리는게 좋습니다.</li>
+        <li>2. 공격력 4 이후부터 흰수염고래존 도시면 됩니다. (이전에는 고래상어, 범고래. 범고래존 몹이 성가시다면 고래상어존 도셔도 잘 오릅니다)</li>
+        <li>3. 공격력 6 이후부터 크라켄존 도시면 됩니다.</li>
+        <li>4. 공격력 12 후반부터 메가로돈존 도시면 됩니다.</li>
+        <li>5. 해탐용 삼지창 : 포세이돈 5, 약점 4, 헤드샷 5, 풀 스타포스</li>
+    </ul>
+</div>
+<script>
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+        document.getElementById(this.dataset.tab).style.display = 'block';
+    });
+});
+</script>
+<style>
+.rules-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    justify-content: center;
+}
+.tab-btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 8px 8px 0 0;
+    background: #222;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+    outline: none;
+}
+.tab-btn.active, .tab-btn:hover {
+    background: #1abc9c;
+    color: #fff;
+}
+.tab-content {
+    background: #222;
+    border-radius: 0 0 12px 12px;
+    padding: 20px 30px;
+    margin-bottom: 20px;
+}
+</style>
+{% endblock %}
