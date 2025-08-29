@@ -3,5 +3,4 @@ Flask-SQLAlchemy
 Werkzeug
 gunicorn
 python-dotenv
-random
 requests
