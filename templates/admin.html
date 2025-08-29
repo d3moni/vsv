@@ -60,6 +60,34 @@
     button:hover {
         background: #16a085;
     }
+    /* 팝업 스타일 */
+    #ipPopup {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #222;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 20px #000;
+        z-index: 1000;
+        max-height: 70%;
+        overflow-y: auto;
+    }
+    #ipPopup ul {
+        list-style: none;
+        padding: 0;
+    }
+    #ipPopup li {
+        padding: 4px 0;
+        border-bottom: 1px solid #333;
+    }
+    #ipPopupClose {
+        margin-top: 10px;
+        display: block;
+        text-align: center;
+    }
     </style>
 </head>
 <body>
@@ -72,6 +100,7 @@
             <th>사용자명</th>
             <th>활성화</th>
             <th>관리자</th>
+            <th>IP/지역</th>
             <th>동작</th>
         </tr>
         {% for u in users %}
@@ -80,6 +109,26 @@
             <td>{{ u.username }}</td>
             <td>{{ '예' if u.is_active else '아니오' }}</td>
             <td>{{ '예' if u.is_admin else '아니오' }}</td>
+            <td>
+                {% if u.is_superadmin %}
+                    <span style="color:#1abc9c;font-weight:bold;">최고관리자</span>
+                    <br>
+                    IP: {{ u.last_ip or '없음' }}<br>
+                    위치: {{ u.last_geo or '없음' }}
+                    {% if u.ip_history|length > 1 %}
+                        <br><button onclick="showIPs('{{ u.id }}')">모두 보기</button>
+                    {% endif %}
+                {% elif not u.is_admin %}
+                    IP: {{ u.last_ip or '없음' }}<br>
+                    위치: {{ u.last_geo or '없음' }}
+                    {% if u.ip_history|length > 1 %}
+                        <br><button onclick="showIPs('{{ u.id }}')">모두 보기</button>
+                    {% endif %}
+                {% else %}
+                    <!-- 권한 부여받은 일반 어드민은 IP 표시 안함 -->
+                    -
+                {% endif %}
+            </td>
             <td>
                 {% if u.is_superadmin %}
                     <span style="color:#1abc9c;font-weight:bold;">최고관리자</span>
@@ -101,7 +150,6 @@
                     </form>
                     {% endif %}
                 {% else %}
-                    <!-- 일반 어드민은 삭제 가능 -->
                     <form method="post" style="display:inline;">
                         <input type="hidden" name="user_id" value="{{ u.id }}">
                         <button type="submit" name="action" value="delete">삭제</button>
@@ -111,5 +159,34 @@
         </tr>
         {% endfor %}
     </table>
+
+    <!-- IP 팝업 -->
+    <div id="ipPopup">
+        <h3>IP 기록</h3>
+        <div id="ipList"></div>
+        <button id="ipPopupClose" onclick="closePopup()">닫기</button>
+    </div>
+
+    <script>
+    function showIPs(userId){
+        fetch(`/user/${userId}/ips`)
+        .then(res => res.json())
+        .then(data => {
+            if(data.geoips){
+                let html = "<ul>";
+                data.geoips.forEach(obj => {
+                    html += `<li>${obj.ip} (${obj.location})</li>`;
+                });
+                html += "</ul>";
+                document.getElementById("ipList").innerHTML = html;
+                document.getElementById("ipPopup").style.display = "block";
+            }
+        });
+    }
+
+    function closePopup(){
+        document.getElementById("ipPopup").style.display = "none";
+    }
+    </script>
 </body>
 </html>

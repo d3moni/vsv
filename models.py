@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+import json
 
 db = SQLAlchemy()
 
@@ -10,6 +11,9 @@ class User(db.Model):
     is_active = db.Column(db.Boolean, default=False)
     is_admin = db.Column(db.Boolean, default=False)
     is_superadmin = db.Column(db.Boolean, default=False)
+    
+    ip_history = db.Column(db.Text, default="[]")  # 로그인 IP 기록 (JSON 문자열)
+    geoip_history = db.Column(db.Text, default="[]")  # IP별 대략적 위치 기록 (JSON 문자열)
 
 class Suggestion(db.Model):
     id = db.Column(db.Integer, primary_key=True)

@@ -1,0 +1,60 @@
+.suggestions-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.suggestion-card {
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    overflow: hidden;
+    background-color: #f4f4f4; /* 카드 배경 */
+    padding: 10px;
+    position: relative;
+}
+
+.card-link {
+    display: block;
+    text-decoration: none; /* 밑줄 제거 */
+    color: inherit; /* 글자색 유지 */
+}
+
+.card-link h3 {
+    margin: 0 0 5px;
+}
+
+.card-link p {
+    margin: 0 0 8px;
+    color: #333;
+}
+
+.author {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.admin-only-label {
+    color: red;
+    font-size: 12px;
+    display: block;
+    margin-top: 5px;
+}
+
+.delete-form {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.delete-form button {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.delete-form button:hover {
+    background: #c0392b;
+}

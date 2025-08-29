@@ -1,25 +1,39 @@
 {% extends "base.html" %}
 {% block title %}건의사항 상세{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/suggestion_detail.css') }}">
+{% endblock %}
 {% block content %}
-<div class="suggestion-detail-card">
-    <h2>{{ suggestion.title }}</h2>
-    <p>{{ suggestion.content }}</p>
-    <span>작성자: {{ suggestion.author.username if suggestion.author else '익명' }}</span>
-</div>
+<div class="suggestion-detail-container">
+    <div class="suggestion-card">
+        <h2>{{ suggestion.title }}</h2>
 
-<div class="comments-section">
-    {% for comment in suggestion.comments %}
-    <div class="comment-card">
-        <strong>{{ comment.author.username if comment.author else '익명' }}</strong>
-        <p>{{ comment.content }}</p>
+        <!-- 비밀 건의사항 -->
+        {% if not suggestion.is_public %}
+            {% if user.is_admin or user.id == suggestion.author_id %}
+                <p class="secret-label">비밀 건의사항입니다</p>
+                <p>{{ suggestion.content }}</p>
+            {% else %}
+                <p class="secret-label">비밀 건의사항입니다 (내용을 볼 수 없습니다)</p>
+            {% endif %}
+        {% else %}
+            <p>{{ suggestion.content }}</p>
+        {% endif %}
+
+        <!-- 작성자 표시 -->
+        <p class="author">
+            {% if suggestion.is_anonymous %}
+                {% if user.is_admin %}
+                    익명 ({{ suggestion.author.username }}) <span class="admin-only">(관리자만)</span>
+                {% elif user.id == suggestion.author_id %}
+                    익명 (본인)
+                {% else %}
+                    익명
+                {% endif %}
+            {% else %}
+                {{ suggestion.author.username }}
+            {% endif %}
+        </p>
     </div>
-    {% endfor %}
-</div>
-
-<div class="add-comment-section">
-    <form method="POST">
-        <textarea name="comment" placeholder="댓글을 작성하세요..." required></textarea>
-        <button type="submit">댓글 등록</button>
-    </form>
 </div>
 {% endblock %}

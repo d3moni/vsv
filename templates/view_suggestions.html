@@ -8,13 +8,63 @@
 
 <div class="suggestions-container">
     {% for sug in suggestions %}
-    <a href="{{ url_for('suggestion_detail', sug_id=sug.id) }}" class="suggestion-card">
+    <div class="suggestion-card">
         <div class="card-content">
-            <h3>{{ sug.title }}</h3>
-            <p>{{ sug.content[:150] }}{% if sug.content|length > 150 %}...{% endif %}</p>
-            <span>{{ sug.author.username if sug.author else '익명' }}</span>
+            <a href="{{ url_for('suggestion_detail', sug_id=sug.id) }}" class="card-link">
+                <h3>{{ sug.title }}</h3>
+                <p>{{ sug.content[:30] }}{% if sug.content|length > 30 %}...{% endif %}</p>
+            </a>
+
+            <!-- 익명 표시 -->
+            {% if sug.is_anonymous %}
+                {% if user and user.is_admin %}
+                    <span>익명 ({{ sug.author.username }})</span>
+                {% elif user and user.id == sug.author_id %}
+                    <span>익명 (나)</span>
+                {% else %}
+                    <span>익명</span>
+                {% endif %}
+            {% else %}
+                <span>{{ sug.author.username if sug.author else '알 수 없음' }}</span>
+            {% endif %}
         </div>
-    </a>
+
+        <!-- 관리자 삭제 버튼 -->
+        {% if user and user.is_admin %}
+        <form action="{{ url_for('delete_suggestion', sug_id=sug.id) }}" method="POST" style="margin-top:10px;">
+            <button type="submit" class="btn-delete" onclick="return confirm('정말 삭제하시겠습니까?')">삭제</button>
+        </form>
+        {% endif %}
+    </div>
     {% endfor %}
 </div>
+
+<style>
+.card-link {
+    text-decoration: none;
+    color: inherit;
+}
+.card-link:focus,
+.card-link:active,
+.card-link:hover {
+    text-decoration: none;
+    outline: none;
+}
+.card-content h3 {
+    color: #00fff0;
+}
+.btn-delete {
+    background-color: #333;
+    color: #fff;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    display: inline-block;
+}
+.btn-delete:hover {
+    background-color: #555;
+}
+</style>
 {% endblock %}
