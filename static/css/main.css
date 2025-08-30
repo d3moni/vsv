@@ -617,3 +617,83 @@ button:hover {
     background-color: #2980b9;
     transform: none;
 }
+
+/* 모든 텍스트 입력 필드와 텍스트영역에 동일한 스타일 적용 */
+.submit-suggestion-container input[type="text"], 
+.submit-suggestion-container textarea {
+    width: 100%;
+    background-color: #111;
+    color: #fff;
+    border: 1px solid #333;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 15px;
+}
+
+/* textarea 크기만 조정 */
+.submit-suggestion-container textarea {
+    height: 200px; /* 내용 입력칸만 크게 */
+    resize: none;
+}
+
+/* 폼 체크박스 스타일 */
+.form-check {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.form-check input {
+    width: auto;
+    margin-right: 8px;
+    cursor: pointer;
+    vertical-align: middle;
+}
+
+.form-check label {
+    cursor: pointer;
+    line-height: 1.2;
+}
+
+/* 모든 입력 칸과 버튼을 동일한 스타일로 적용 */
+.submit-suggestion-container input[type="number"],
+.submit-suggestion-container input[type="text"] {
+    width: 100%;
+    background-color: #111;
+    color: #fff;
+    border: 1px solid #333;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 15px;
+    height: auto;
+    font-size: 14px;
+}
+
+/* 버튼 스타일 */
+.submit-suggestion-container button {
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background-color: #1abc9c;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    width: 100%; /* 버튼 넓이 조정 */
+}
+
+.submit-suggestion-container button:hover {
+    background-color: #16a085;
+}
+
+/* form-group에 여백 추가 */
+.submit-suggestion-container .form-group {
+    margin-bottom: 20px;
+}
+
+.submit-suggestion-container label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #fff;
+}

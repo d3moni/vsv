@@ -1,45 +1,44 @@
 {% extends "base.html" %}
-{% block title %}승증/국고 장부{% endblock %}
-
+{% block title %}건의사항 등록{% endblock %}
 {% block content %}
-<h2>승증/국고 장부</h2>
+<div class="submit-suggestion-container">
+    <form method="POST">
+        <div class="form-group">
+            <label for="seungjung">승증</label>
+            <input type="number" name="seungjung" id="seungjung" required>
+        </div>
+        <div class="form-group">
+            <label for="kuri">크리</label>
+            <input type="number" name="kuri" id="kuri" required>
+        </div>
+        <div class="form-group">
+            <label for="sharp">샤프</label>
+            <input type="number" name="sharp" id="sharp" required>
+        </div>
+        <div class="form-group">
+            <label>기타</label>
+            <textarea name="content" required></textarea>
+        </div>
+        <div class="form-group">
+            <label for="nation_balance">국가잔고</label>
+            <input type="number" name="nation_balance" id="nation_balance" required oninput="formatNumber(this)">
+        </div>
+        <div class="form-group">
+            <label for="bico">비코</label>
+            <input type="number" name="bico" id="bico" required step="0.01">
+        </div>
 
-<div style="display: flex; gap: 50px;">
-    <!-- 장부 정보 -->
-    <div style="flex: 1;">
-        {% if ledger %}
-        <p>승증: {{ ledger.seungjung }}장</p>
-        <p>크리: {{ ledger.kuri }}장</p>
-        <p>샤프: {{ ledger.sharp }}장</p>
-        <p>기타사항: {{ ledger.etc }}</p>
-        <hr>
-        <p>국가잔고: {{ ledger.nation_balance }}</p>
-        <p>비코: {{ ledger.bico }}</p>
-        {% else %}
-        <p>오늘의 장부 데이터가 없습니다.</p>
-        {% endif %}
-    </div>
-
-    <!-- 달력 -->
-    <div style="flex: 1;">
-        <input type="date" id="ledgerDate">
-        <button onclick="goDate()">조회</button>
-    </div>
+        <button type="submit">제출</button>
+    </form>
 </div>
+{% endblock %}
 
 <script>
-function goDate() {
-    const date = document.getElementById('ledgerDate').value;
-    if(date) {
-        window.location.href = `/ledger/${date}`;
+    // 국가잔고 입력값에 쉼표 추가
+    function formatNumber(input) {
+        let value = input.value.replace(/,/g, ''); // 기존 쉼표 제거
+        if (value) {
+            input.value = Number(value).toLocaleString(); // 쉼표 추가
+        }
     }
-}
-
-// ✅ 페이지 로드되자마자 달력 강제 열기
-window.addEventListener("load", () => {
-    const input = document.getElementById("ledgerDate");
-    input.focus();  // 포커스 주기
-    input.showPicker?.(); // 일부 브라우저(Chrome, Edge)에서만 지원 → 자동으로 달력 펼쳐짐
-});
 </script>
-{% endblock %}

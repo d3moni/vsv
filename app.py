@@ -57,6 +57,8 @@ def index():
 # -------------------------
 @app.route("/register", methods=["GET", "POST"])
 def register():
+    if "user_id" in session:
+        return redirect(url_for("index"))  # 이미 로그인된 경우 메인 페이지로 리디렉션
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
@@ -73,8 +75,11 @@ def register():
         return redirect(url_for("login"))
     return render_template("register.html")
 
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    if "user_id" in session:
+        return redirect(url_for("index"))  # 이미 로그인된 경우 메인 페이지로 리디렉션
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
@@ -89,6 +94,7 @@ def login():
         flash("로그인 성공!")
         return redirect(url_for("index"))
     return render_template("login.html")
+
 
 @app.route("/logout")
 def logout():
@@ -329,7 +335,8 @@ def edit_ledger():
         flash("장부가 저장되었습니다.")
         return redirect(url_for("view_ledger"))
 
-    return render_template("edit_ledger.html", ledger=ledger_entry)
+    return render_template("edit_ledger.html", ledger=ledger_entry, user=user)
+
 
 # -------------------------
 # 장부 자동 복사 기능
