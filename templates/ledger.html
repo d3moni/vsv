@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% block title %}승증/국고 장부{% endblock %}
+
+{% block content %}
+<h2>승증/국고 장부</h2>
+
+<div style="display: flex; gap: 50px;">
+    <!-- 장부 정보 -->
+    <div style="flex: 1;">
+        {% if ledger %}
+            <p>날짜: {{ ledger.date }}</p>
+            <p>승증: {{ ledger.seungjung }}장</p>
+            <p>크리: {{ ledger.kuri }}장</p>
+            <p>샤프: {{ ledger.sharp }}장</p>
+            <p>기타사항: {{ ledger.etc }}</p>
+            <hr>
+            <p>국가잔고: {{ ledger.nation_balance }}</p>
+            <p>비코: {{ ledger.bico }}</p>
+        {% else %}
+            <p>선택한 날짜의 장부 데이터가 없습니다.</p>
+        {% endif %}
+    </div>
+
+    <!-- 커스텀 달력 -->
+    <div style="flex: 1;">
+        <div id="calendar"></div>
+    </div>
+</div>
+
+<script>
+// helper: YYYY-MM-DD 포맷
+function formatDate(year, month, day){
+    return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+}
+
+// 오늘 날짜 (한국 시간 기준)
+let today = new Date();
+today = new Date(today.toLocaleString("en-US", {timeZone: "Asia/Seoul"}));
+
+let selectedDateStr = "{{ ledger.date if ledger else '' }}";
+let selectedDate = selectedDateStr ? new Date(selectedDateStr) : today;
+
+// 달력 렌더링
+function renderCalendar(year, month){
+    const calendarDiv = document.getElementById('calendar');
+    calendarDiv.innerHTML = '';
+
+    // 달력 헤더
+    const header = document.createElement('div');
+    header.style.display = 'flex';
+    header.style.justifyContent = 'space-between';
+    header.style.alignItems = 'center';
+    header.style.marginBottom = '10px';
+
+    // 이전 버튼
+    const prevBtn = document.createElement('button');
+    prevBtn.textContent = '<';
+    prevBtn.onclick = ()=>{ 
+        month--; 
+        if(month<1){month=12; year--;} 
+        renderCalendar(year,month); 
+    };
+
+    // 다음 버튼
+    const nextBtn = document.createElement('button');
+    nextBtn.textContent = '>';
+
+    // 미래 월이면 버튼 숨김
+    if(year > today.getFullYear() || (year === today.getFullYear() && month >= today.getMonth()+1)){
+        nextBtn.style.visibility = 'hidden';
+    } else {
+        nextBtn.onclick = ()=>{
+            month++; 
+            if(month>12){month=1; year++;} 
+            renderCalendar(year,month); 
+        };
+    }
+
+    const title = document.createElement('span');
+    title.textContent = `${year}년 ${month}월`;
+
+    header.appendChild(prevBtn);
+    header.appendChild(title);
+    header.appendChild(nextBtn);
+    calendarDiv.appendChild(header);
+
+    // 요일 표시
+    const daysDiv = document.createElement('div');
+    daysDiv.style.display = 'grid';
+    daysDiv.style.gridTemplateColumns = 'repeat(7, 40px)';
+    daysDiv.style.textAlign = 'center';
+    daysDiv.style.marginBottom = '5px';
+    ['일','월','화','수','목','금','토'].forEach(d=>{
+        const dayCell = document.createElement('div');
+        dayCell.textContent = d;
+        dayCell.style.fontWeight = 'bold';
+        daysDiv.appendChild(dayCell);
+    });
+    calendarDiv.appendChild(daysDiv);
+
+    // 날짜 표시
+    const firstDay = new Date(year, month-1, 1).getDay();
+    const lastDate = new Date(year, month, 0).getDate();
+    const dateGrid = document.createElement('div');
+    dateGrid.style.display = 'grid';
+    dateGrid.style.gridTemplateColumns = 'repeat(7, 40px)';
+    dateGrid.style.textAlign = 'center';
+    dateGrid.style.gap = '2px';
+
+    // 빈 칸
+    for(let i=0;i<firstDay;i++){
+        const empty = document.createElement('div');
+        dateGrid.appendChild(empty);
+    }
+
+    // 날짜
+    for(let d=1; d<=lastDate; d++){
+        const dayCell = document.createElement('div');
+        dayCell.textContent = d;
+        dayCell.style.padding = '5px';
+        dayCell.style.cursor = 'pointer';
+        dayCell.style.borderRadius = '50%';
+        dayCell.style.transition = 'background-color 0.2s';
+
+        // hover 강조
+        dayCell.onmouseover = ()=>{ dayCell.style.backgroundColor = '#e0e0e0'; };
+        dayCell.onmouseout = ()=>{
+            if(d===selectedDate.getDate() && month===selectedDate.getMonth()+1 && year===selectedDate.getFullYear()){
+                dayCell.style.backgroundColor = '#4CAF50';
+                dayCell.style.color = 'white';
+            } else {
+                dayCell.style.backgroundColor = '';
+                dayCell.style.color = '';
+            }
+        };
+
+        // 선택된 날짜 강조
+        if(d===selectedDate.getDate() && month===selectedDate.getMonth()+1 && year===selectedDate.getFullYear()){
+            dayCell.style.backgroundColor = '#4CAF50';
+            dayCell.style.color = 'white';
+        }
+
+        // 미래일 클릭 불가
+        const cellDate = new Date(year, month-1, d);
+        if(cellDate > today){
+            dayCell.style.cursor = 'not-allowed';
+            dayCell.style.color = '#aaa';
+        } else {
+            dayCell.onclick = ()=>{
+                const dateStr = formatDate(year, month, d);
+                window.location.href = `/ledger/${dateStr}`;
+            };
+        }
+
+        dateGrid.appendChild(dayCell);
+    }
+
+    calendarDiv.appendChild(dateGrid);
+}
+
+// 초기 렌더
+renderCalendar(selectedDate.getFullYear(), selectedDate.getMonth()+1);
+</script>
+
+<style>
+button {
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    background-color: #f0f0f0;
+    cursor: pointer;
+}
+button:hover {
+    background-color: #ddd;
+}
+</style>
+
+{% endblock %}

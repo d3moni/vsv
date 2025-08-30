@@ -1,24 +1,28 @@
 import os
 import json
 import random
-import requests
+from datetime import date, datetime
 from flask import Flask, render_template, request, redirect, session, url_for, flash, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
-from models import db, User, Suggestion, Comment
+from models import db, User, Suggestion, Comment, Ledger
+from datetime import timedelta
+from apscheduler.schedulers.background import BackgroundScheduler
+from pytz import timezone
 
 load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", os.urandom(24))
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///users.db"
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
+# 단일 DB (유저 + 장부)
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
 
 with app.app_context():
     db.create_all()
 
-    # 초기 관리자 계정
+    # 초기 관리자 계정 생성
     admin_username = os.environ.get("ADMIN_USERNAME", "1redrose")
     admin_password = os.environ.get("ADMIN_PASSWORD", "change_this_password!")
     if not User.query.filter_by(username=admin_username).first():
@@ -37,15 +41,13 @@ with app.app_context():
 # -------------------------
 @app.route("/")
 def index():
-    user = None
-    if "user_id" in session:
-        user = User.query.get(session["user_id"])
-
+    user = User.query.get(session.get("user_id")) if "user_id" in session else None
     recommendations = [
         {"url": "/rules", "title": "규칙", "desc": "커뮤니티 규칙을 확인하세요"},
         {"url": "/profile", "title": "내 프로필", "desc": "회원 정보를 관리하세요"},
         {"url": "/info", "title": "정보", "desc": "서버 소식을 알아보세요"},
         {"url": "/suggestions", "title": "건의사항", "desc": "국가 발전에 기여하세요"},
+        {"url": "/ledgerd", "title": "승증장부", "desc": "국가 잔고를 확인하세요"},
     ]
     selected = random.sample(recommendations, min(len(recommendations), 3))
     return render_template("index.html", user=user, selected=selected)
@@ -64,24 +66,18 @@ def register():
         if User.query.filter_by(username=username).first():
             flash("이미 존재하는 사용자입니다.")
             return redirect(url_for("register"))
-        hashed_pw = generate_password_hash(password)
-        new_user = User(username=username, password=hashed_pw, is_active=False)
+        new_user = User(username=username, password=generate_password_hash(password), is_active=False)
         db.session.add(new_user)
         db.session.commit()
         flash("회원가입 완료! 관리자의 승인을 기다려주세요.")
         return redirect(url_for("login"))
     return render_template("register.html")
 
-
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
-        if not username or not password:
-            flash("아이디와 비밀번호를 모두 입력해주세요.")
-            return redirect(url_for("login"))
-
         user = User.query.filter_by(username=username).first()
         if not user or not check_password_hash(user.password, password):
             flash("아이디 또는 비밀번호가 잘못되었습니다.")
@@ -89,38 +85,59 @@ def login():
         if not user.is_active:
             flash("관리자가 승인해야 로그인할 수 있습니다.")
             return redirect(url_for("login"))
-
-        # 로그인 IP 기록
-        ip = request.remote_addr
-        ip_list = json.loads(user.ip_history)
-        geo_list = json.loads(user.geoip_history)
-        if ip not in ip_list:
-            ip_list.append(ip)
-            try:
-                resp = requests.get(f"https://ipinfo.io/{ip}/json")
-                if resp.status_code == 200:
-                    data = resp.json()
-                    location = f"{data.get('city','')}, {data.get('region','')}, {data.get('country','')}"
-                else:
-                    location = "Unknown"
-            except:
-                location = "Unknown"
-            geo_list.append({"ip": ip, "location": location})
-            user.ip_history = json.dumps(ip_list)
-            user.geoip_history = json.dumps(geo_list)
-            db.session.commit()
-
         session["user_id"] = user.id
         flash("로그인 성공!")
         return redirect(url_for("index"))
     return render_template("login.html")
-
 
 @app.route("/logout")
 def logout():
     session.pop("user_id", None)
     flash("로그아웃 완료!")
     return redirect(url_for("index"))
+
+# -------------------------
+# 프로필 / 비밀번호 변경
+# -------------------------
+@app.route("/profile")
+def profile():
+    if "user_id" not in session:
+        flash("로그인이 필요합니다.")
+        return redirect(url_for("login"))
+    user = User.query.get(session["user_id"])
+    return render_template("profile.html", user=user)
+
+@app.route("/profile/change_password", methods=["GET", "POST"])
+def change_password():
+    if "user_id" not in session:
+        flash("로그인이 필요합니다.")
+        return redirect(url_for("login"))
+    user = User.query.get(session["user_id"])
+    if request.method == "POST":
+        current_pw = request.form.get("current_password")
+        new_pw = request.form.get("new_password")
+        confirm_pw = request.form.get("confirm_password")
+        if not check_password_hash(user.password, current_pw):
+            flash("현재 비밀번호가 잘못되었습니다.")
+            return redirect(url_for("change_password"))
+        if new_pw != confirm_pw:
+            flash("새 비밀번호와 확인 비밀번호가 일치하지 않습니다.")
+            return redirect(url_for("change_password"))
+        user.password = generate_password_hash(new_pw)
+        db.session.commit()
+        flash("비밀번호가 변경되었습니다.")
+        return redirect(url_for("profile"))
+    return render_template("change_password.html", user=user)
+
+@app.route("/rules")
+def rules():
+    user = User.query.get(session.get("user_id")) if "user_id" in session else None
+    return render_template("rules.html", user=user)
+
+@app.route("/info")
+def info():
+    user = User.query.get(session.get("user_id")) if "user_id" in session else None
+    return render_template("info.html", user=user)
 
 # -------------------------
 # 관리자 페이지
@@ -139,10 +156,7 @@ def admin():
     if request.method == "POST":
         action = request.form.get("action")
         target_id = request.form.get("user_id")
-        if not target_id:
-            flash("잘못된 요청입니다.")
-            return redirect(url_for("admin"))
-        target_user = User.query.get(int(target_id))
+        target_user = User.query.get(int(target_id)) if target_id else None
         if not target_user:
             flash("사용자를 찾을 수 없습니다.")
             return redirect(url_for("admin"))
@@ -151,35 +165,17 @@ def admin():
             return redirect(url_for("admin"))
         if action == "approve":
             target_user.is_active = True
-            db.session.commit()
-            flash(f"{target_user.username} 계정이 승인되었습니다.")
         elif action == "delete":
             db.session.delete(target_user)
-            db.session.commit()
-            flash(f"{target_user.username} 계정이 삭제되었습니다.")
         elif action == "make_admin":
-            if not target_user.is_admin:
-                target_user.is_admin = True
-                db.session.commit()
-                flash(f"{target_user.username} 계정에 관리자 권한이 부여되었습니다.")
-            else:
-                flash(f"{target_user.username} 계정은 이미 관리자입니다.")
+            target_user.is_admin = True
+        db.session.commit()
+        flash(f"{target_user.username} 계정이 업데이트되었습니다.")
         return redirect(url_for("admin"))
-
     return render_template("admin.html", users=users, current_user=current_user)
 
-# API: 유저 IP/위치 JSON
-@app.route("/user/<int:user_id>/ips")
-def user_ips(user_id):
-    current_user = User.query.get(session.get("user_id"))
-    if not current_user or not current_user.is_superadmin:
-        return jsonify({"error": "권한 없음"}), 403
-    user = User.query.get_or_404(user_id)
-    geo_list = json.loads(user.geoip_history)
-    return jsonify({"geoips": geo_list})
-
 # -------------------------
-# 건의사항 관련
+# 건의사항
 # -------------------------
 @app.route("/suggestions")
 def view_suggestions():
@@ -187,14 +183,10 @@ def view_suggestions():
         flash("로그인이 필요합니다.")
         return redirect(url_for("login"))
     user = User.query.get(session["user_id"])
-    if user.is_admin:
-        suggestions_list = Suggestion.query.order_by(Suggestion.created_at.desc()).all()
-    else:
-        suggestions_list = Suggestion.query.filter(
-            (Suggestion.is_public == True) | (Suggestion.author_id == user.id)
-        ).order_by(Suggestion.created_at.desc()).all()
+    suggestions_list = Suggestion.query.order_by(Suggestion.created_at.desc()).all() if user.is_admin else Suggestion.query.filter(
+        (Suggestion.is_public == True) | (Suggestion.author_id == user.id)
+    ).order_by(Suggestion.created_at.desc()).all()
     return render_template("view_suggestions.html", user=user, suggestions=suggestions_list)
-
 
 @app.route("/suggestions/submit", methods=["GET", "POST"])
 def submit_suggestion():
@@ -203,23 +195,18 @@ def submit_suggestion():
         return redirect(url_for("login"))
     user = User.query.get(session["user_id"])
     if request.method == "POST":
-        title = request.form.get("title")
-        content = request.form.get("content")
-        is_public = bool(request.form.get("is_public"))
-        is_anonymous = bool(request.form.get("is_anonymous"))
         new_sug = Suggestion(
-            title=title,
-            content=content,
+            title=request.form.get("title"),
+            content=request.form.get("content"),
             author_id=user.id,
-            is_public=is_public,
-            is_anonymous=is_anonymous
+            is_public=bool(request.form.get("is_public")),
+            is_anonymous=bool(request.form.get("is_anonymous"))
         )
         db.session.add(new_sug)
         db.session.commit()
         flash("건의사항이 제출되었습니다.")
         return redirect(url_for("view_suggestions"))
     return render_template("submit_suggestion.html", user=user)
-
 
 @app.route("/suggestions/<int:sug_id>", methods=["GET", "POST"])
 def suggestion_detail(sug_id):
@@ -234,17 +221,12 @@ def suggestion_detail(sug_id):
     if request.method == "POST":
         comment_content = request.form.get("comment")
         if comment_content:
-            comment = Comment(
-                suggestion_id=suggestion.id,
-                author_id=user.id,
-                content=comment_content
-            )
+            comment = Comment(suggestion_id=suggestion.id, author_id=user.id, content=comment_content)
             db.session.add(comment)
             db.session.commit()
             flash("댓글이 등록되었습니다.")
             return redirect(url_for("suggestion_detail", sug_id=sug_id))
     return render_template("suggestion_detail.html", user=user, suggestion=suggestion)
-
 
 @app.route("/suggestions/delete/<int:sug_id>", methods=["POST"])
 def delete_suggestion(sug_id):
@@ -261,6 +243,130 @@ def delete_suggestion(sug_id):
     flash("건의사항이 삭제되었습니다.")
     return redirect(url_for("view_suggestions"))
 
+# -------------------------
+# 장부
+# -------------------------
+@app.route("/ledger")
+def view_ledger():
+    if "user_id" not in session:
+        flash("로그인이 필요합니다.")
+        return redirect(url_for("login"))
+    user = User.query.get(session.get("user_id"))
+
+    # 한국 시간 기준 오늘
+    kst = timezone("Asia/Seoul")
+    today = datetime.now(kst).date()
+
+    ledger_entry = Ledger.query.filter_by(date=today).first()
+    return render_template("ledger.html", ledger=ledger_entry, user=user)
+
+# -------------------------
+# 특정 날짜 장부 보기
+# -------------------------
+@app.route("/ledger/<string:ledger_date>")
+def ledger_by_date(ledger_date):
+    if "user_id" not in session:
+        flash("로그인이 필요합니다.")
+        return redirect(url_for("login"))
+    user = User.query.get(session.get("user_id"))
+
+    # 날짜 형식 검증
+    try:
+        d = datetime.strptime(ledger_date, "%Y-%m-%d").date()
+    except ValueError:
+        flash("잘못된 날짜 형식입니다.")
+        return redirect(url_for("view_ledger"))
+
+    ledger_entry = Ledger.query.filter_by(date=d).first()
+    return render_template("ledger.html", ledger=ledger_entry, user=user)
+
+# -------------------------
+# 장부 수정 (관리자 전용)
+# -------------------------
+@app.route("/ledger/edit", methods=["GET", "POST"])
+def edit_ledger():
+    if "user_id" not in session:
+        flash("로그인이 필요합니다.")
+        return redirect(url_for("login"))
+    user = User.query.get(session.get("user_id"))
+    if not user.is_admin:
+        flash("관리자 권한이 필요합니다.")
+        return redirect(url_for("index"))
+
+    # 한국 시간 기준 오늘
+    kst = timezone("Asia/Seoul")
+    today = datetime.now(kst).date()
+    ledger_entry = Ledger.query.filter_by(date=today).first()
+
+    if request.method == "POST":
+        seungjung = int(request.form.get("seungjung", 0))
+        kuri = int(request.form.get("kuri", 0))
+        sharp = int(request.form.get("sharp", 0))
+        etc = request.form.get("etc", "")
+        nation_balance = int(request.form.get("nation_balance", 0))
+        bico = float(request.form.get("bico", 0))
+
+        if not ledger_entry:
+            ledger_entry = Ledger(
+                date=today,
+                seungjung=seungjung,
+                kuri=kuri,
+                sharp=sharp,
+                etc=etc,
+                nation_balance=nation_balance,
+                bico=bico
+            )
+            db.session.add(ledger_entry)
+        else:
+            ledger_entry.seungjung = seungjung
+            ledger_entry.kuri = kuri
+            ledger_entry.sharp = sharp
+            ledger_entry.etc = etc
+            ledger_entry.nation_balance = nation_balance
+            ledger_entry.bico = bico
+
+        db.session.commit()
+        flash("장부가 저장되었습니다.")
+        return redirect(url_for("view_ledger"))
+
+    return render_template("edit_ledger.html", ledger=ledger_entry)
+
+# -------------------------
+# 장부 자동 복사 기능
+# -------------------------
+def copy_ledger_if_not_modified():
+    with app.app_context():
+        kst = timezone("Asia/Seoul")
+        today = datetime.now(kst).date()
+        yesterday = today - timedelta(days=1)
+
+        # 오늘 기록이 있는지 확인
+        today_record = Ledger.query.filter_by(date=today).first()
+        if today_record:
+            return  # 이미 있으면 복사 안 함
+
+        # 어제 기록 가져오기
+        yesterday_record = Ledger.query.filter_by(date=yesterday).first()
+        if yesterday_record:
+            new_record = Ledger(
+                date=today,
+                seungjung=yesterday_record.seungjung,
+                kuri=yesterday_record.kuri,
+                sharp=yesterday_record.sharp,
+                etc=yesterday_record.etc,
+                nation_balance=yesterday_record.nation_balance,
+                bico=yesterday_record.bico
+            )
+            db.session.add(new_record)
+            db.session.commit()
+            print(f"✅ {today} 장부가 어제 기록에서 자동 복사되었습니다.")
+
+# -------------------------
+# 스케줄러 실행 (매일 00:00 KST 기준)
+# -------------------------
+scheduler = BackgroundScheduler(timezone="Asia/Seoul")
+scheduler.add_job(func=copy_ledger_if_not_modified, trigger="cron", hour=0, minute=0)
+scheduler.start()
 
 if __name__ == "__main__":
     app.run(debug=False)

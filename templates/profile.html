@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}내 프로필{% endblock %}
+
+{% block content %}
+<h2>{{ user.username }}님의 프로필</h2>
+
+<ul>
+    <li>닉네임 : {{ user.username }}</li>
+    <li>계정 활성화: {{ "활성화됨" if user.is_active else "비활성화" }}</li>
+    <li>등급 : {{ "관리자" if user.is_admin else "일반 사용자" }}</li>
+    <li>최초 관리자 여부: {{ "예" if user.is_superadmin else "아니오" }}</li>
+    {% if user.created_at %}
+        <li>가입일: {{ user.created_at.strftime("%Y-%m-%d") }}</li>
+    {% endif %}
+    {% if user.last_login %}
+        <li>마지막 로그인: {{ user.last_login.strftime("%Y-%m-%d %H:%M") }}</li>
+    {% endif %}
+</ul>
+
+<div style="margin-top: 20px;">
+    <!-- 버튼 영역 -->
+    <a href="{{ url_for('change_password') }}">
+        <button>비밀번호 변경</button>
+    </a>
+    <a href="{{ url_for('index') }}">
+        <button>홈으로 돌아가기</button>
+    </a>
+</div>
+{% endblock %}

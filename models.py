@@ -11,9 +11,16 @@ class User(db.Model):
     is_active = db.Column(db.Boolean, default=False)
     is_admin = db.Column(db.Boolean, default=False)
     is_superadmin = db.Column(db.Boolean, default=False)
-    
-    ip_history = db.Column(db.Text, default="[]")  # 로그인 IP 기록 (JSON 문자열)
-    geoip_history = db.Column(db.Text, default="[]")  # IP별 대략적 위치 기록 (JSON 문자열)
+    ip_list = db.Column(db.Text, default="[]")  # JSON 문자열로 IP 저장
+
+    def add_ip(self, ip):
+        try:
+            ips = json.loads(self.ip_list)
+        except:
+            ips = []
+        if ip not in ips:
+            ips.append(ip)
+            self.ip_list = json.dumps(ips)
 
 class Suggestion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -34,3 +41,13 @@ class Comment(db.Model):
     author_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     author = db.relationship('User', backref='comments')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class Ledger(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, default=datetime.utcnow)
+    seungjung = db.Column(db.Integer, default=0)
+    kuri = db.Column(db.Integer, default=0)
+    sharp = db.Column(db.Integer, default=0)
+    etc = db.Column(db.String(200), default="")
+    nation_balance = db.Column(db.BigInteger, default=0)
+    bico = db.Column(db.Float, default=0.0)

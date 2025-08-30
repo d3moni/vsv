@@ -4,3 +4,5 @@ Werkzeug
 gunicorn
 python-dotenv
 requests
+pscheduler
+pytz

@@ -24,7 +24,7 @@
         <p class="author">
             {% if suggestion.is_anonymous %}
                 {% if user.is_admin %}
-                    익명 ({{ suggestion.author.username }}) <span class="admin-only">(관리자만)</span>
+                    익명 ({{ suggestion.author.username }}) <span class="admin-only"></span>
                 {% elif user.id == suggestion.author_id %}
                     익명 (본인)
                 {% else %}

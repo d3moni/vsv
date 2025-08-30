@@ -65,13 +65,18 @@
     <nav>
         <a href="/">홈</a>
         {% if user %}
+            <a href="/profile">프로필</a>
             <a href="/rules">규칙</a>
+            <a href="/info">정보</a>
+            <a href="/suggestions">건의사항</a>
+            <a href="/ledger">국가장부</a>
             <a href="/logout">로그아웃</a>
         {% else %}
             <a href="/login">로그인</a>
             <a href="/register">가입</a>
         {% endif %}
     </nav>
+
 
     <div class="container">
         {% with messages = get_flashed_messages() %}
