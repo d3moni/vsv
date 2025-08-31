@@ -1,14 +1,15 @@
 import os
 import json
 import random
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from flask import Flask, render_template, request, redirect, session, url_for, flash, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
-from models import db, User, Suggestion, Comment, Ledger
-from datetime import timedelta
+from models import db, User, Suggestion, Comment, Ledger, IPHistory  # IPHistory 추가
 from apscheduler.schedulers.background import BackgroundScheduler
 from pytz import timezone
+import requests
+
 
 load_dotenv()
 app = Flask(__name__)
@@ -75,25 +76,33 @@ def register():
         return redirect(url_for("login"))
     return render_template("register.html")
 
-
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    if "user_id" in session:
-        return redirect(url_for("index"))  # 이미 로그인된 경우 메인 페이지로 리디렉션
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
+        ip = request.remote_addr
+        geo = "알수없음"  # 나중에 외부 API로 위치 가져오기 가능
+
         user = User.query.filter_by(username=username).first()
-        if not user or not check_password_hash(user.password, password):
-            flash("아이디 또는 비밀번호가 잘못되었습니다.")
+        if user and check_password_hash(user.password, password):
+            session["user_id"] = user.id
+            # IP 기록 추가
+            user.add_ip(ip, geo)
+
+            flash("로그인 성공", "success")
+            return redirect(url_for("index"))
+        else:
+            flash("아이디 또는 비밀번호가 잘못되었습니다.", "error")
             return redirect(url_for("login"))
-        if not user.is_active:
-            flash("관리자가 승인해야 로그인할 수 있습니다.")
-            return redirect(url_for("login"))
-        session["user_id"] = user.id
-        flash("로그인 성공!")
-        return redirect(url_for("index"))
     return render_template("login.html")
+
+@app.route("/user/<int:user_id>/ips")
+def user_ips(user_id):
+    user = User.query.get_or_404(user_id)
+    geoips = [{"ip": ip.ip, "location": ip.geo} for ip in user.ip_history]
+    return jsonify({"geoips": geoips})
+
 
 
 @app.route("/logout")

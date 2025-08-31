@@ -13,14 +13,33 @@ class User(db.Model):
     is_superadmin = db.Column(db.Boolean, default=False)
     ip_list = db.Column(db.Text, default="[]")  # JSON 문자열로 IP 저장
 
-    def add_ip(self, ip):
-        try:
-            ips = json.loads(self.ip_list)
-        except:
-            ips = []
-        if ip not in ips:
-            ips.append(ip)
-            self.ip_list = json.dumps(ips)
+    # 관계
+    ip_history = db.relationship("IPHistory", backref="user", cascade="all, delete-orphan")
+
+    # 마지막 접속 IP / 위치
+    @property
+    def last_ip(self):
+        if self.ip_history:
+            return self.ip_history[-1].ip
+        return None
+
+    @property
+    def last_geo(self):
+        if self.ip_history:
+            return self.ip_history[-1].location
+        return None
+
+    def add_ip(self, ip, location):
+        new_entry = IPHistory(ip=ip, location=location, user=self)
+        db.session.add(new_entry)
+        db.session.commit()
+
+class IPHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    ip = db.Column(db.String(45))           # IPv6 포함
+    location = db.Column(db.String(200))    # 위치 정보
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Suggestion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -31,7 +50,6 @@ class Suggestion(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     author = db.relationship('User', backref='suggestions')
-
     comments = db.relationship('Comment', backref='suggestion', cascade="all, delete-orphan")
 
 class Comment(db.Model):
