@@ -7,3 +7,4 @@ requests
 pscheduler
 pytz
 apscheduler
+discord.py
